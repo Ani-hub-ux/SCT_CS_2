@@ -1,0 +1,61 @@
+from PIL import Image
+import random
+
+def load_image(image_path):
+    """Load an image from the specified path."""
+    return Image.open(image_path)
+
+def save_image(image, output_path):
+    """Save the manipulated image to the specified path."""
+    image.save(output_path)
+
+def swap_pixels(image):
+    """Encrypt the image by swapping pixels."""
+    pixels = list(image.getdata())
+    random.seed(42)  # Use a fixed seed for reproducibility
+    random.shuffle(pixels)
+    image.putdata(pixels)
+    return image
+
+def unswap_pixels(image):
+    """Decrypt the image by reversing the pixel swap."""
+    pixels = list(image.getdata())
+    random.seed(42)
+    shuffled_indices = list(range(len(pixels)))
+    random.shuffle(shuffled_indices)
+    unshuffled_pixels = [None] * len(pixels)
+    for i, j in enumerate(shuffled_indices):
+        unshuffled_pixels[j] = pixels[i]
+    image.putdata(unshuffled_pixels)
+    return image
+
+def modify_pixel_values(image, key):
+    """Encrypt the image by modifying pixel values."""
+    pixels = list(image.getdata())
+    new_pixels = [((p[0] + key) % 256, (p[1] + key) % 256, (p[2] + key) % 256) for p in pixels]
+    image.putdata(new_pixels)
+    return image
+
+def reverse_modify_pixel_values(image, key):
+    """Decrypt the image by reversing the pixel value modification."""
+    pixels = list(image.getdata())
+    original_pixels = [((p[0] - key) % 256, (p[1] - key) % 256, (p[2] - key) % 256) for p in pixels]
+    image.putdata(original_pixels)
+    return image
+
+if _name_ == "_main_":
+    
+    image = load_image("input_image.png")
+    
+    encrypted_image = swap_pixels(image.copy())
+    save_image(encrypted_image, "encrypted_image_swap.png")
+    
+    key = 50  # This key can be any integer
+    encrypted_image = modify_pixel_values(image.copy(), key)
+    save_image(encrypted_image, "encrypted_image_modify.png")
+ 
+    decrypted_image = unswap_pixels(encrypted_image.copy())
+    save_image(decrypted_image, "decrypted_image_swap.png")
+    
+    decrypted_image = reverse_modify_pixel_values(encrypted_image.copy(), key)
+    save_image(decrypted_image, "decrypted_image_modify.png")
